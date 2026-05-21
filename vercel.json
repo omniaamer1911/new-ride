@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "outputDirectory": ".",
   "builds": [
     {
       "src": "app/main.py",
@@ -12,13 +11,5 @@
       "src": "/(.*)",
       "dest": "app/main.py"
     }
-  ],
-  "functions": {
-    "app/main.py": {
-      "maxDuration": 60
-    }
-  },
-"env": {
-  "DATABASE_URL": "sqlite+aiosqlite:///tmp/ride_chatbot.db"
-}
+  ]
 }
