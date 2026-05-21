@@ -36,7 +36,7 @@ async def lifespan(app: FastAPI):
     # وعلى فيرسل هيتخطاه تماماً عشان السيرفر ما يضربش كراش وقت الـ Startup
     if not os.getenv("VERCEL"):
         await init_db()
-        
+
         factory = async_session_factory()
         async with factory() as session:
             await seed_if_empty(session)
