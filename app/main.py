@@ -1,3 +1,4 @@
+import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -20,23 +21,30 @@ from app.api.trips import router as trips_router
 from app.chatbot.engine import run_chat_turn
 from app.chatbot.providers.base import LLMProvider
 from app.db.seed import seed_if_empty
-from app.db.session import async_session_factory, init_db
+from app.db.session import async_session_factory, init_db, dispose_engine
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.services.geocoding import LandmarkGeocoder
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_db()
+    # 1. الـ Geocoder هيشتغل في الحالتين (لوكال وفيرسل) بدون مشاكل
     geocoder = LandmarkGeocoder()
     app.state.geocoder = geocoder
 
-    factory = async_session_factory()
-    async with factory() as session:
-        await seed_if_empty(session)
-        await session.commit()
+    # 2. الشرط الذكي: إنشاء الجداول وحقن البيانات (Seed) هيشتغل لوكال بس
+    # وعلى فيرسل هيتخطاه تماماً عشان السيرفر ما يضربش كراش وقت الـ Startup
+    if not os.getenv("VERCEL"):
+        await init_db()
+        
+        factory = async_session_factory()
+        async with factory() as session:
+            await seed_if_empty(session)
+            await session.commit()
 
     yield
+    # تأمين قفل الـ engine عند إيقاف السيرفر
+    await dispose_engine()
 
 
 def create_app() -> FastAPI:
