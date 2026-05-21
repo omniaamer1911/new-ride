@@ -1,5 +1,5 @@
 from functools import lru_cache
-
+import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -20,7 +20,11 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-sonnet-4-20250514"
 
-    database_url: str = "sqlite+aiosqlite:///./ride_chatbot.db"
+  
+
+    database_url: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./ride_chatbot.db")
+
+    #database_url: str = "sqlite+aiosqlite:///./ride_chatbot.db"
 
     # Demand surge: count of active trips above this adds extra multiplier step
     demand_surge_threshold: int = 3
