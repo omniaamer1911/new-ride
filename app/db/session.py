@@ -1,3 +1,4 @@
+import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
@@ -26,11 +27,19 @@ async def dispose_engine() -> None:
 def get_engine() -> AsyncEngine:
     global _engine
     if _engine is None:
-        settings = get_settings()
+        # بنشيك الأول لو الـ Environment variable مبعوت من فيرسل بشكل مباشر
+        db_url = os.getenv("DATABASE_URL")
+
+        # لو مش مبعوت أو مش مقروء، بنرجع للـ settings العادية بتاعتك
+        if not db_url:
+            settings = get_settings()
+            db_url = settings.database_url
+
         _engine = create_async_engine(
-            settings.database_url,
+            db_url,
             echo=False,
             future=True,
+            connect_args={"check_same_thread": False} if "sqlite" in db_url else {},
         )
     return _engine
 
